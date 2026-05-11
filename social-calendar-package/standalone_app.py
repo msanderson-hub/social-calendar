@@ -1382,6 +1382,18 @@ document.addEventListener('keydown', e => {
   }
 });
 
+// Re-define scInit so it uses our patched scLoadData
+function scInit() {
+  if (scLoaded) {
+    scApplyFilters();
+    scStartSyncPolling();
+    return;
+  }
+  scLoaded = true;
+  scLoadData(false);
+  scStartSyncPolling();
+}
+
 console.log('%c Social Calendar Enhanced UI v2 ✨ ', 'background:#7c6fff;color:#fff;border-radius:4px;padding:2px 8px;font-weight:700;');
 """
 
