@@ -1423,9 +1423,11 @@ def index():
 
 if __name__ == "__main__":
     mode = "DUMMY" if USE_DUMMY else "LIVE (Monday.com)"
+    port = int(os.environ.get("PORT", 8989))
+    host = "0.0.0.0"
     print("┌──────────────────────────────────────────────────────────")
     print(f"│  iConnections Social Calendar — {mode}")
     print(f"│  ✨ Enhanced UI — drag, search, captions, animations")
-    print(f"│  → http://127.0.0.1:8989/")
+    print(f"│  → http://{host}:{port}/")
     print("└──────────────────────────────────────────────────────────")
-    app.run(host="127.0.0.1", port=8989, debug=False)
+    app.run(host=host, port=port, debug=False)
