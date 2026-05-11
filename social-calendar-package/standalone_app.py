@@ -1402,7 +1402,25 @@ function switchMainTab(tab) {
   document.getElementById('socialcal-view').style.display = (tab === 'socialcal') ? '' : 'none';
   if (tab === 'socialcal' && typeof scInit === 'function') scInit();
 }
-window.addEventListener('DOMContentLoaded', () => switchMainTab('socialcal'));
+window.addEventListener('DOMContentLoaded', function() {
+  switchMainTab('socialcal');
+  // Fallback: if data didn't load, fetch it directly
+  setTimeout(function() {
+    if (typeof scItems !== 'undefined' && scItems.length === 0) {
+      console.log('[SC] Fallback data load triggered');
+      fetch('/api/social-calendar/items')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          scItems = data.items || [];
+          scAllGroups = data.all_groups || [];
+          if (typeof scPopulateFilters === 'function') scPopulateFilters();
+          if (typeof scApplyFilters === 'function') scApplyFilters();
+          console.log('[SC] Fallback loaded ' + scItems.length + ' items');
+        })
+        .catch(function(e) { console.error('[SC] Fallback load error:', e); });
+    }
+  }, 1200);
+});
 """
 
 BANNER = (
