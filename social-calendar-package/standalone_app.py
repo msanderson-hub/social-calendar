@@ -15,7 +15,7 @@ USE_DUMMY = os.environ.get("DUMMY", "1") != "0"
 if USE_DUMMY:
     import dummy_patch  # noqa: F401
 
-from flask import Flask
+from flask import Flask, request, session, redirect, url_for
 from social_calendar import (
     social_cal_bp,
     SOCIAL_CAL_TAB_HTML as _ORIG_HTML,
@@ -1432,8 +1432,51 @@ BANNER = (
 ) if USE_DUMMY else ''
 
 
+PASSWORD = os.environ.get("SITE_PASSWORD", "iconnections2026")
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    error = ""
+    if request.method == "POST":
+        if request.form.get("password") == PASSWORD:
+            session["authed"] = True
+            return redirect("/")
+        error = "Incorrect password. Try again."
+    return """<!doctype html><html lang='en'><head>
+<meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'>
+<title>iConnections Social Calendar</title>
+<link rel='preconnect' href='https://fonts.googleapis.com'>
+<link href='https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700&display=swap' rel='stylesheet'>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#06060f;color:#e2e2f4;font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;}
+body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(circle,#1a1a42 1px,transparent 1px);background-size:28px 28px;opacity:0.35;pointer-events:none;}
+.box{background:#0d0d20;border:1px solid #272755;border-radius:20px;padding:40px;width:100%;max-width:380px;position:relative;box-shadow:0 40px 80px rgba(0,0,0,0.6);}
+.logo{font-size:1.4rem;font-weight:700;background:linear-gradient(135deg,#fff 20%,#7c6fff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px;}
+.sub{color:#5a5a8a;font-size:0.8rem;margin-bottom:28px;}
+label{display:block;font-size:0.75rem;font-weight:600;color:#5a5a8a;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:6px;}
+input[type=password]{width:100%;background:#111128;color:#e2e2f4;border:1px solid #272755;border-radius:8px;padding:10px 12px;font-size:0.9rem;font-family:inherit;outline:none;transition:border-color 0.15s;}
+input[type=password]:focus{border-color:#7c6fff;box-shadow:0 0 0 3px rgba(124,111,255,0.15);}
+button{width:100%;margin-top:14px;background:#7c6fff;color:#fff;border:none;border-radius:8px;padding:11px;font-size:0.9rem;font-weight:600;cursor:pointer;font-family:inherit;transition:background 0.15s;box-shadow:0 0 18px rgba(124,111,255,0.35);}
+button:hover{background:#5a4ed4;}
+.error{color:#f87171;font-size:0.78rem;margin-top:10px;text-align:center;}
+</style></head><body>
+<div class='box'>
+  <div class='logo'>Social Calendar</div>
+  <div class='sub'>iConnections Marketing · Enter password to continue</div>
+  <form method='POST'>
+    <label>Password</label>
+    <input type='password' name='password' autofocus placeholder='Enter password…' />
+    <button type='submit'>Enter →</button>
+    """ + (f"<div class='error'>✕ {error}</div>" if error else "") + """
+  </form>
+</div>
+</body></html>"""
+
 @app.route("/")
 def index():
+    if not session.get("authed"):
+        return redirect("/login")
     return (
         "<!doctype html><html lang='en'><head>"
         "<meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'>"
